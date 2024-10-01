@@ -1,0 +1,34 @@
+name: hover_float_animation
+description: "A new Flutter plugin project."
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.5.3
+  flutter: '>=3.3.0'
+
+dependencies:
+  animation_transition: 
+    path: ../../package/animation_transition
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.hover_float_animation
+        pluginClass: HoverFloatAnimationPlugin
+      ios:
+        pluginClass: HoverFloatAnimationPlugin
+      linux:
+        pluginClass: HoverFloatAnimationPlugin
+      macos:
+        pluginClass: HoverFloatAnimationPlugin
+      windows:
+        pluginClass: HoverFloatAnimationPluginCApi
