@@ -1,7 +1,7 @@
 name: hover_float_animation
-description: "A new Flutter plugin project."
+description: "Create floating widgets for your apps with input animation effects."
 version: 0.0.1
-homepage:
+homepage: http://nio.ilove-soft.com
 
 environment:
   sdk: ^3.5.3
