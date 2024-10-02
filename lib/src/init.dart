@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:animation_transition/dialogModel.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hover_float_animation/src/hover.dart';
 
@@ -9,6 +10,7 @@ import 'model/model.dart';
 
 class HoverFloatAnimation {
   final Map<int, ControllHover> _controll = {};
+  OverlayState? _hoverState = null;
   int token() {
     Random random = Random();
     int max = 9999999;
@@ -98,16 +100,19 @@ class HoverFloatAnimation {
     required BuildContext context,
     required OverlayEntry hover,
   }) {
+    _hoverState ??= Overlay.of(context);
     if (_controll.containsKey(token)) {
       _controll[token]!.hover = hover;
-      Overlay.of(context).insert(_controll[token]!.hover!);
+      _hoverState!.insert(_controll[token]!.hover!);
     }
   }
 
-  hide({required int token}) {
-    print(token);
+  hide({required int token}) async {
     if (_controll.containsKey(token) && _controll[token]!.hover != null) {
       if (!_controll[token]!.hoverChild && !_controll[token]!.hoverFloat) {
+        await transitionAnimation.reversePlay(
+          token: token,
+        );
         _controll[token]!.hover!.remove();
         _controll[token]!.hover = null;
       }

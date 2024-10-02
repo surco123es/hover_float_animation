@@ -1,4 +1,3 @@
-import 'package:animation_transition/animation_transition.dart';
 
 typedef HoverToken = Function(int token);
 

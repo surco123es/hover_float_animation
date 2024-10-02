@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:animation_transition/animation_transition.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:hover_float_animation/src/model/controll.dart';
 
 import '../hover_float_animation.dart';
@@ -98,15 +97,11 @@ class _FloatHoverTransioncionState extends State<FloatHoverTransioncion> {
           HoverFloatController.setTimeOut(
             token: widget.data.token,
             func: Timer(
-              const Duration(milliseconds: 500),
-              () {
+              const Duration(milliseconds: 300),
+              () async {
                 if (!HoverFloatController.status(
                     token: widget.data.token, hoverFloat: true)) {
-                  transitionAnimation.reverse(token: widget.data.token).then(
-                    (_) {
-                      HoverFloatController.hide(token: widget.data.token);
-                    },
-                  );
+                  await HoverFloatController.hide(token: widget.data.token);
                 }
               },
             ),
@@ -309,8 +304,9 @@ class _HoverFloatPositionState extends State<HoverFloatPosition> {
       size: widget.floatSize,
       relativePosition: widget.relativePosition,
     );
-    try {
-      return Stack(
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
         children: [
           CompositedTransformFollower(
             link: HoverFloatController.getLink(token: widget.token)!,
@@ -340,15 +336,11 @@ class _HoverFloatPositionState extends State<HoverFloatPosition> {
                 HoverFloatController.setTimeOut(
                   token: widget.token,
                   func: Timer(
-                    const Duration(milliseconds: 500),
-                    () {
+                    const Duration(milliseconds: 300),
+                    () async {
                       if (!HoverFloatController.status(
                           token: widget.token, hoverChild: true)) {
-                        transitionAnimation.reverse(token: widget.token).then(
-                          (_) {
-                            HoverFloatController.hide(token: widget.token);
-                          },
-                        );
+                        await HoverFloatController.hide(token: widget.token);
                       }
                     },
                   ),
@@ -371,10 +363,7 @@ class _HoverFloatPositionState extends State<HoverFloatPosition> {
             ),
           ),
         ],
-      );
-    } catch (e) {
-      print(e);
-      return const SizedBox();
-    }
+      ),
+    );
   }
 }
