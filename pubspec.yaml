@@ -1,6 +1,6 @@
 name: hover_float_animation
 description: "Create floating widgets for your apps with input animation effects."
-version: 0.0.2
+version: 0.0.3
 homepage: http://nio.ilove-soft.com
 
 environment:
