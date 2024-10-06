@@ -30,6 +30,7 @@ class _FloatHoverTransioncionState extends State<FloatHoverTransioncion> {
         hoverFloat: false,
       ),
     );
+    widget.data.onStart(widget.data.token);
     super.initState();
   }
 
@@ -338,6 +339,7 @@ class _HoverFloatPositionState extends State<HoverFloatPosition> {
                   func: Timer(
                     const Duration(milliseconds: 300),
                     () async {
+                      widget.onExit(widget.token);
                       if (!HoverFloatController.status(
                           token: widget.token, hoverChild: true)) {
                         await HoverFloatController.hide(token: widget.token);
