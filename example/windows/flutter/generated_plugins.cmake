@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   animation_transition
-  hover_float_animation
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

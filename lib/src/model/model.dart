@@ -2,7 +2,7 @@ import 'package:animation_transition/animation_transition.dart';
 import 'package:flutter/widgets.dart';
 import 'package:hover_float_animation/src/model/type.dart';
 
-nullFunc(int tk) {}
+nullFunc() {}
 
 class HoverAnimationData {
   Widget child;

@@ -1,16 +1,38 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:animation_transition/dialogModel.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hover_float_animation/src/hover.dart';
+import 'package:animation_transition/animation_transition.dart';
+import 'package:flutter/material.dart';
 
+import 'model/func.dart';
 import 'model/controll.dart';
 import 'model/model.dart';
 
-class HoverFloatAnimation {
-  final Map<int, ControllHover> _controll = {};
-  OverlayState? _hoverState = null;
+class HoverFloatAnimation extends StatefulWidget {
+  HoverAnimationData hoverData;
+  HoverFloatAnimation({super.key, required this.hoverData});
+
+  @override
+  State<HoverFloatAnimation> createState() => _HoverFloatAnimationState();
+}
+
+class _HoverFloatAnimationState extends State<HoverFloatAnimation>
+    with WidgetsBindingObserver {
+  final ControllHover controller = ControllHover(
+    hoverFloat: false,
+    hoverChild: false,
+    link: LayerLink(),
+    overlay: OverlayPortalController(),
+  );
+  FuncPosition controllerPositition = FuncPosition();
+  int tken = 0;
+  final GlobalKey gKey = GlobalKey();
+
+  late Offset position;
+  late Size size;
+
+  late Offset showPosition;
+
   int token() {
     Random random = Random();
     int max = 9999999;
@@ -19,116 +41,223 @@ class HoverFloatAnimation {
     return token;
   }
 
-  addHover({
-    required int token,
-    required ControllHover hover,
-  }) {
-    if (!_controll.containsKey(token)) {
-      _controll.addAll({token: hover});
-    }
-  }
-
-  hover({required int token, required bool hover, required bool child}) {
-    if (_controll.containsKey(token)) {
-      if (child) {
-        _controll[token]!.hoverChild = hover;
-      } else {
-        _controll[token]!.hoverFloat = hover;
-      }
-    }
-  }
-
-  bool status(
-      {required int token, bool hoverFloat = false, bool hoverChild = false}) {
-    if (_controll.containsKey(token)) {
-      if (hoverFloat) {
-        return _controll[token]!.hoverFloat;
-      } else if (hoverChild) {
-        return _controll[token]!.hoverChild;
-      } else {
-        return _controll[token]!.hover == null ? false : true;
-      }
+  hover({bool float = false, bool parent = false}) {
+    if (parent) {
+      controller.hoverChild = true;
     } else {
-      return false;
+      controller.hoverFloat = float;
     }
   }
 
-  Widget start({required HoverAnimationData hover}) {
-    if (hover.token == 0) {
-      hover.token = token();
+  bool status({bool hoverFloat = false, bool hoverChild = false}) {
+    if (hoverFloat) {
+      return controller.hoverFloat;
+    } else if (hoverChild) {
+      return controller.hoverChild;
     }
-    if (hover.onStart != nullFunc) {
-      hover.onStart(hover.token);
-    }
-    return FloatHoverTransioncion(data: hover);
+    return false;
   }
 
   Timer? getTimeOut({
-    required int token,
     bool cancel = false,
   }) {
-    if (_controll.containsKey(token)) {
-      if (cancel) {
-        _controll[token]!.timeOut!.cancel();
-        _controll[token]!.timeOut = null;
-      }
-      return _controll[token]?.timeOut;
+    if (cancel) {
+      controller.timeOut!.cancel();
+      controller.timeOut = null;
     }
-    return null;
+    return controller.timeOut;
   }
 
   setTimeOut({
-    required int token,
     required Timer func,
   }) {
-    if (_controll.containsKey(token)) {
-      return _controll[token]?.timeOut = func;
-    }
+    return controller.timeOut = func;
   }
 
-  LayerLink? getLink({
-    required int token,
-  }) {
-    if (_controll.containsKey(token)) {
-      return _controll[token]?.link;
-    }
-    return null;
+  LayerLink getLink() {
+    return controller.link;
   }
 
-  show({
-    required int token,
-    required BuildContext context,
-    required OverlayEntry hover,
-  }) {
-    _hoverState ??= Overlay.of(context);
-    if (_controll.containsKey(token)) {
-      _controll[token]!.hover = hover;
-      _hoverState!.insert(_controll[token]!.hover!);
+  show() {
+    if (controller.hoverFloat) {
+      return;
     }
+    controller.overlay.show();
+    controller.hoverFloat = true;
   }
 
-  hide({required int token}) async {
-    if (_controll.containsKey(token) && _controll[token]!.hover != null) {
-      if (!_controll[token]!.hoverChild && !_controll[token]!.hoverFloat) {
-        await transitionAnimation.reversePlay(
-          token: token,
+  hide() async {
+    transitionAnimation.reverse(token: tken).then(
+      (value) {
+        controller.overlay.hide();
+        controller.hoverFloat = false;
+      },
+    );
+  }
+
+  changeSizeAndPosition() {
+    positionSize();
+    showPosition = controllerPositition.getPosition(
+      parentPosition: position,
+      parentSize: size,
+      horizontal: widget.hoverData.positionHorizontal,
+      vertical: widget.hoverData.positionVertical,
+      size: widget.hoverData.sizeFloat,
+      relativePosition: widget.hoverData.relativePosition,
+      context: context,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.hoverData.onStart != nullFunc) {
+      widget.hoverData.onStart();
+    }
+    tken = token();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        changeSizeAndPosition();
+      },
+    );
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    controller.timeOut?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void positionSize() {
+    RenderBox render = gKey.currentContext!.findRenderObject()! as RenderBox;
+    position = render.localToGlobal(Offset.zero);
+    size = render.size;
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    changeSizeAndPosition();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      key: gKey,
+      cursor: SystemMouseCursors.alias,
+      onExit: (_) {
+        hover(
+          parent: false,
         );
-        _controll[token]!.hover!.remove();
-        _controll[token]!.hover = null;
-      }
-    }
-  }
-
-  dispose({required int token}) {
-    if (_controll.containsKey(token)) {
-      if (!_controll[token]!.hoverChild && !_controll[token]!.hoverFloat) {
-        if (_controll[token]!.hover != null) {
-          _controll[token]!.hover!.remove();
+        if (getTimeOut() != null) {
+          getTimeOut(cancel: true);
         }
-        _controll.remove(token);
-      }
-    }
+        setTimeOut(
+          func: Timer(
+            const Duration(milliseconds: 300),
+            () async {
+              if (!status(hoverFloat: true) ||
+                  (status(hoverFloat: false) && status(hoverChild: false))) {
+                await hide();
+              }
+            },
+          ),
+        );
+      },
+      onHover: (_) async {
+        if (status()) {
+          return;
+        }
+        hover(
+          parent: true,
+        );
+        show();
+      },
+      onEnter: (_) {
+        if (getTimeOut() != null) {
+          getTimeOut(cancel: true);
+        }
+        if (status()) {
+          return;
+        }
+        hover(
+          parent: true,
+        );
+        show();
+      },
+      child: Column(
+        children: [
+          CompositedTransformTarget(
+            link: getLink(),
+            child: widget.hoverData.child,
+          ),
+          OverlayPortal(
+            controller: controller.overlay,
+            overlayChildBuilder: (context) {
+              return Material(
+                type: MaterialType.transparency,
+                child: Stack(
+                  children: [
+                    CompositedTransformFollower(
+                      link: getLink(),
+                      offset: showPosition,
+                      child: MouseRegion(
+                        onEnter: (_) {
+                          hover(
+                            float: true,
+                          );
+                          widget.hoverData.onEnterMouse();
+                        },
+                        onHover: (_) {
+                          hover(
+                            float: true,
+                          );
+                        },
+                        onExit: (_) {
+                          hover(
+                            float: false,
+                          );
+                          if (getTimeOut() != null) {
+                            getTimeOut(cancel: true);
+                          }
+                          setTimeOut(
+                            func: Timer(
+                              const Duration(milliseconds: 300),
+                              () async {
+                                widget.hoverData.onExitMouse();
+                                if (status(hoverChild: true)) {
+                                  await hide();
+                                }
+                              },
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          height: widget.hoverData.sizeFloat.height,
+                          width: widget.hoverData.sizeFloat.width,
+                          child: widget.hoverData.animation
+                              ? transitionAnimation.start(
+                                  data: AnimationData(
+                                    token: tken,
+                                    duration:
+                                        widget.hoverData.animationDuration,
+                                    transition: widget.hoverData.transition,
+                                    child: widget.hoverData.hoverChild,
+                                  ),
+                                )
+                              : widget.hoverData.hoverChild,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          )
+        ],
+      ),
+    );
   }
 }
-
-HoverFloatAnimation HoverFloatController = HoverFloatAnimation();

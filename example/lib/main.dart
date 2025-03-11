@@ -36,16 +36,16 @@ class HomePage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(
         3,
-        (index) => HoverFloatController.start(
-          hover: HoverAnimationData(
+        (index) => HoverFloatAnimation(
+          hoverData: HoverAnimationData(
             //la posicion puede ser derecha, Izquierda, Centro
             positionHorizontal: horizontal,
             //la posicion puede ser arriba, abajo , centro
             positionVertical: vertical,
             //La transion que tomara al entrar al hover
-            transition: TransitionType.FadeInLeftBig,
+            transition: TransitionType.ZoomIn,
             //La duracion de la transicion
-            animationDuration: const Duration(milliseconds: 300),
+            animationDuration: const Duration(milliseconds: 200),
             //el tamaño del widget de flotara
             sizeFloat: const Size(180, 270),
             //Si se aplica la animacion por defecto esta el true
@@ -57,16 +57,16 @@ class HomePage extends StatelessWidget {
             //el token de manipulacion del hover flotante por defecto es 0
             token: 0,
             //es la function que de dispara al entrar al widget flotante
-            onEnterMouse: (token) {
+            onEnterMouse: () {
               print('entrate al hover');
             },
             //es la funcion que se dispara al salir del hover
-            onExitMouse: (token) {
+            onExitMouse: () {
               print('Saliste del hover');
             },
             //es la funcion que se dispara al dibujar el widget padre
-            onStart: (token) {
-              print('Se creo el widget y este es el token $token');
+            onStart: () {
+              print('Se creo el widget y este es el token ');
             },
             //el widget flotante
             hoverChild: Container(

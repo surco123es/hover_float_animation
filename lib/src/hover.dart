@@ -1,10 +1,10 @@
-import 'dart:async';
+/* import 'dart:async';
 
 import 'package:animation_transition/animation_transition.dart';
 import 'package:flutter/material.dart';
 import 'package:hover_float_animation/src/model/controll.dart';
 
-import '../hover_float_animation.dart';
+import '../../hover_float_animation.dart';
 
 class FloatHoverTransioncion extends StatefulWidget {
   HoverAnimationData data;
@@ -369,3 +369,4 @@ class _HoverFloatPositionState extends State<HoverFloatPosition> {
     );
   }
 }
+ */

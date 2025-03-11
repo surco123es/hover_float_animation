@@ -1,5 +1,4 @@
-
-typedef HoverToken = Function(int token);
+typedef HoverToken = Function();
 
 enum HoverPositionVertical {
   top,
