@@ -19,13 +19,14 @@ class FuncPosition {
         contentLeft = parentPosition.dx - ((size.width - parentSize.width) / 2);
       } else {
         left = -(parentSize.width - size.width) / 2;
+        print('estas aqui');
         contentLeft = parentPosition.dx - ((parentSize.width - size.width) / 2);
       }
       if (relativePosition && contentLeft < 0) {
         left = 0;
       } else if (relativePosition &&
           contentLeft + size.width > screenSize.width) {
-        left = screenSize.width - size.width;
+        left = -size.width;
       }
     } else if (horizontal == HoverPositionHorizontal.left) {
       left = parentSize.width;
@@ -70,6 +71,7 @@ class FuncPosition {
             ? -(size.height - parentSize.height)
             : (parentSize.height - size.height);
       }
+      print(contentTop);
     } else if (vertical == HoverPositionVertical.top) {
       top = -size.height;
       contentTop = parentPosition.dy - size.height;

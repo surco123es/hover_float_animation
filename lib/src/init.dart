@@ -27,9 +27,12 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
   FuncPosition controllerPositition = FuncPosition();
   int tken = 0;
   final GlobalKey gKey = GlobalKey();
+  final GlobalKey floatKey = GlobalKey();
 
+  bool changePosition = false;
   late Offset position;
-  late Size size;
+  late Size sizeParent;
+  Size floatSize = Size.zero;
 
   late Offset showPosition;
 
@@ -42,6 +45,7 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
   }
 
   hover({bool float = false, bool parent = false}) {
+    print('hover');
     if (parent) {
       controller.hoverChild = true;
     } else {
@@ -74,15 +78,35 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
     return controller.timeOut = func;
   }
 
-  LayerLink getLink() {
-    return controller.link;
-  }
-
   show() {
     if (controller.hoverFloat) {
       return;
     }
     controller.overlay.show();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) {
+        Future.delayed(const Duration(milliseconds: 200), () {
+          try {
+            if (changePosition && floatSize != Size.zero) {
+              setState(() {
+                changeSizeAndPosition();
+                changePosition = false;
+              });
+              return;
+            }
+            RenderBox? rnder =
+                floatKey.currentContext?.findRenderObject()! as RenderBox;
+            if (floatSize == rnder.size) return;
+            floatSize = rnder.size;
+            setState(() {
+              changeSizeAndPosition();
+            });
+          } catch (e) {
+            print(e);
+          }
+        });
+      },
+    );
     controller.hoverFloat = true;
   }
 
@@ -96,13 +120,12 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
   }
 
   changeSizeAndPosition() {
-    positionSize();
     showPosition = controllerPositition.getPosition(
       parentPosition: position,
-      parentSize: size,
+      parentSize: sizeParent,
       horizontal: widget.hoverData.positionHorizontal,
       vertical: widget.hoverData.positionVertical,
-      size: widget.hoverData.sizeFloat,
+      size: floatSize,
       relativePosition: widget.hoverData.relativePosition,
       context: context,
     );
@@ -117,7 +140,8 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
     tken = token();
     WidgetsBinding.instance.addPostFrameCallback(
       (_) {
-        changeSizeAndPosition();
+        showPosition = controller.link.leader!.offset;
+        positionSize();
       },
     );
     WidgetsBinding.instance.addObserver(this);
@@ -131,15 +155,18 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
   }
 
   void positionSize() {
+    if (!changePosition) {
+      changePosition = true;
+    }
     RenderBox render = gKey.currentContext!.findRenderObject()! as RenderBox;
     position = render.localToGlobal(Offset.zero);
-    size = render.size;
+    sizeParent = render.size;
   }
 
   @override
   void didChangeMetrics() {
     super.didChangeMetrics();
-    changeSizeAndPosition();
+    positionSize();
   }
 
   @override
@@ -190,71 +217,73 @@ class _HoverFloatAnimationState extends State<HoverFloatAnimation>
       child: Column(
         children: [
           CompositedTransformTarget(
-            link: getLink(),
-            child: widget.hoverData.child,
-          ),
-          OverlayPortal(
-            controller: controller.overlay,
-            overlayChildBuilder: (context) {
-              return Material(
-                type: MaterialType.transparency,
-                child: Stack(
-                  children: [
-                    CompositedTransformFollower(
-                      link: getLink(),
-                      offset: showPosition,
-                      child: MouseRegion(
-                        onEnter: (_) {
-                          hover(
-                            float: true,
-                          );
-                          widget.hoverData.onEnterMouse();
-                        },
-                        onHover: (_) {
-                          hover(
-                            float: true,
-                          );
-                        },
-                        onExit: (_) {
-                          hover(
-                            float: false,
-                          );
-                          if (getTimeOut() != null) {
-                            getTimeOut(cancel: true);
-                          }
-                          setTimeOut(
-                            func: Timer(
-                              const Duration(milliseconds: 300),
-                              () async {
-                                widget.hoverData.onExitMouse();
-                                if (status(hoverChild: true)) {
-                                  await hide();
-                                }
-                              },
+            link: controller.link,
+            child: OverlayPortal(
+              controller: controller.overlay,
+              child: widget.hoverData.child,
+              overlayChildBuilder: (context) {
+                return Material(
+                  type: MaterialType.transparency,
+                  child: Stack(
+                    children: [
+                      CompositedTransformFollower(
+                        link: controller.link,
+                        offset: showPosition,
+                        child: MouseRegion(
+                          onEnter: (_) {
+                            hover(
+                              float: true,
+                            );
+                            widget.hoverData.onEnterMouse();
+                          },
+                          onHover: (_) {
+                            hover(
+                              float: true,
+                            );
+                          },
+                          onExit: (_) {
+                            hover(
+                              float: false,
+                            );
+                            if (getTimeOut() != null) {
+                              getTimeOut(cancel: true);
+                            }
+                            setTimeOut(
+                              func: Timer(
+                                const Duration(milliseconds: 300),
+                                () async {
+                                  widget.hoverData.onExitMouse();
+                                  if (status(hoverChild: true)) {
+                                    await hide();
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                          child: SizedBox(
+                            key: floatKey,
+                            width: widget.hoverData.sizeFloat.width,
+                            child: IntrinsicHeight(
+                              child: widget.hoverData.animation
+                                  ? transitionAnimation.start(
+                                      data: AnimationData(
+                                        token: tken,
+                                        duration:
+                                            widget.hoverData.animationDuration,
+                                        transition: widget.hoverData.transition,
+                                        child: widget.hoverData.hoverChild,
+                                      ),
+                                    )
+                                  : widget.hoverData.hoverChild,
                             ),
-                          );
-                        },
-                        child: SizedBox(
-                          height: widget.hoverData.sizeFloat.height,
-                          width: widget.hoverData.sizeFloat.width,
-                          child: widget.hoverData.animation
-                              ? transitionAnimation.start(
-                                  data: AnimationData(
-                                    token: tken,
-                                    duration:
-                                        widget.hoverData.animationDuration,
-                                    transition: widget.hoverData.transition,
-                                    child: widget.hoverData.hoverChild,
-                                  ),
-                                )
-                              : widget.hoverData.hoverChild,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           )
         ],
       ),

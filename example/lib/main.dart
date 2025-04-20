@@ -43,9 +43,9 @@ class HomePage extends StatelessWidget {
             //la posicion puede ser arriba, abajo , centro
             positionVertical: vertical,
             //La transion que tomara al entrar al hover
-            transition: TransitionType.ZoomIn,
+            transition: TransitionType.FlipInX,
             //La duracion de la transicion
-            animationDuration: const Duration(milliseconds: 200),
+            animationDuration: const Duration(milliseconds: 500),
             //el tamaño del widget de flotara
             sizeFloat: const Size(180, 270),
             //Si se aplica la animacion por defecto esta el true

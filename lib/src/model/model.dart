@@ -27,7 +27,7 @@ class HoverAnimationData {
     this.transition = TransitionType.FadeIn,
     this.positionVertical = HoverPositionVertical.center,
     this.positionHorizontal = HoverPositionHorizontal.center,
-    this.animationDuration = const Duration(milliseconds: 1000),
+    this.animationDuration = const Duration(milliseconds: 500),
     this.onStart = nullFunc,
     this.onEnterMouse = nullFunc,
     this.onExitMouse = nullFunc,
